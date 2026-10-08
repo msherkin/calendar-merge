@@ -1,0 +1,56 @@
+name: Merge calendars
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # every hour at :17 (on-the-hour runs get delayed)
+  workflow_dispatch:        # "Run workflow" button in the Actions tab
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Merge calendar lists
+        env:
+          CALENDAR_SECRETS: ${{ toJSON(secrets) }}
+          PUBLISH_FOLDER: ${{ secrets.PUBLISH_FOLDER }}
+        run: python3 merge.py
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+          retention-days: 1
+
+      - uses: actions/deploy-pages@v4
+
+      # Anyone signed in to GitHub can download a public repo's run files,
+      # so remove the copy of the calendars once it has been published.
+      - name: Delete the run's copy of the calendars
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '.artifacts[].id'); do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$id"
+          done
+
+      # GitHub pauses scheduled jobs in public repos after 60 quiet days.
+      - name: Keep the hourly schedule switched on
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/$GITHUB_REPOSITORY/actions/workflows/merge.yml/enable"

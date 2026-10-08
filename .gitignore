@@ -1,0 +1,6 @@
+# Calendar lists hold private links; on GitHub they live in Secrets instead.
+*_calendars.txt
+private_setup.txt
+output/
+site/
+.DS_Store
