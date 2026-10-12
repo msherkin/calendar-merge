@@ -4,3 +4,4 @@ private_setup.txt
 output/
 site/
 .DS_Store
+.venv/

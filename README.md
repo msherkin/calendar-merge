@@ -49,6 +49,19 @@ python3 merge.py
 
 writes the combined calendars into an `output` folder.
 
+**See what's in them.** After running the merge, in the same folder:
+
+```
+.venv/bin/python preview.py
+```
+
+writes `output/preview.html`, a page listing the next 6 weeks day by day,
+with a button for each combined calendar and an "All" view. Double-click it
+to open it in a browser. For more weeks, add a number:
+`.venv/bin/python preview.py 12`. (First time only, create `.venv` with
+`python3 -m venv .venv` then
+`.venv/bin/pip install icalendar recurring-ical-events tzdata`.)
+
 ## If something goes wrong
 
 - If any calendar can't be downloaded, the run stops without publishing, so
